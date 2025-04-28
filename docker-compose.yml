@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: flask_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: flask
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  app:
+    build: .
+    container_name: todo_flask
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: flask_db
+      DB_NAME: flask
+      DB_ROOT_PASSWORD: pass
+      DB_PASSWORD: pass
+      DB_USER: root
+
+volumes:
+  db_data:

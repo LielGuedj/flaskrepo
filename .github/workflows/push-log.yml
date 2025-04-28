@@ -1,0 +1,8 @@
+name: Push logger 
+on: [push]
+jobs:
+  log_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: say Hello on push
+        run: echo "🟢 new push received"

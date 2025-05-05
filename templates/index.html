@@ -1,27 +1,44 @@
 {% extends 'base.html' %}
+
 {% block head %}
-<title>Todo app</title>
+    <title>Todo app</title>
 {% endblock %}
 
 {% block body %}
-<h1>Todo app</h1>
-<div class="box">
-    <form action="/add" method="post">
-        <label for="title">Todo title</label>
-        <input type="text" name="title" placeholder="What needs to be done?"><br>
-        <button type="submit">Add</button>
-    </form>
+<!-- שינוי צבע טקסט על כל גוף הדף -->
+<div style="color: #333;">
 
-    {% for todo in list_todo %}
-        <p>{{ todo.id }} | {{ todo.title }}</p>
-        {% if todo.complete %}
-        <span>Complete</span>
-        {% else %}
-            <span>Not complete</span>
-        {% endif %}
-        <a href="/update/{{ todo.id }}">Update</a>
-        <a href="/delete/{{ todo.id }}">Delete</a>
-    {% endfor %}
+    <!-- בלוק מוטיבציה יומי -->
+    <div style="background-color:#f2f2f2;padding:15px;border-radius:8px;margin-bottom:20px;">
+        <h3>💬 ציטוט מוטיבציה יומי:</h3>
+        <blockquote>
+            "{{ quote }}" <br>
+            <footer>— {{ author }}</footer>
+        </blockquote>
+    </div>
+
+    <!-- כותרת ואזור המשימות -->
+    <h1>Todo app</h1>
+    <div class="box">
+        <form action="/add" method="post">
+            <label for="title">Todo title</label>
+            <input type="text" name="title" placeholder="What needs to be done?"><br>
+            <button type="submit">Add</button>
+        </form>
+
+        <!-- הצגת רשימת המשימות -->
+        {% for todo in list_todo %}
+            <p>{{ todo.id }} | {{ todo.title }}</p>
+            {% if todo.complete %}
+                <span>Complete</span>
+            {% else %}
+                <span>Not complete</span>
+            {% endif %}
+            <a href="/update/{{ todo.id }}">Update</a>
+            <a href="/delete/{{ todo.id }}">Delete</a>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}
+
 

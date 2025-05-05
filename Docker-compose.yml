@@ -26,6 +26,10 @@ services:
       DB_ROOT_PASSWORD: pass
       DB_PASSWORD: pass
       DB_USER: root
+      FLASK_ENV: development  # מפעיל את Flask במצב פיתוח (debug)
+    volumes:
+      - .:/app  # קישור בין הקבצים המקומיים שלך לקונטיינר
 
 volumes:
   db_data:
+

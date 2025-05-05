@@ -1,4 +1,5 @@
 flask
 flask_sqlalchemy
 cryptography
-pymysql 
+pymysql
+requests==2.25.1

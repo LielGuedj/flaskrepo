@@ -13,7 +13,7 @@ jobs:
       - name: create network
         run: docker network create app_net
       - name: start app.py
-        run: docker-compose -f Docker-compose.yml app -d --build
+        run: docker-compose -f Docker-compose.yml up -d --build
       - name: Wait for MySQL to be ready
         run: |
           echo "⏳ Waiting for DB to be ready..."
@@ -22,7 +22,7 @@ jobs:
             sleep 4
           done
       - name: run test
-        run: docker-compose -f Docker-compose.test.yml app --build --abort-on-container-exit
+        run: docker-compose -f Docker-compose.test.yml up --build --abort-on-container-exit
       - name: show test result
         if : success()
         run: echo "test pass"

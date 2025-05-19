@@ -12,7 +12,8 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
-
+    networks:
+      - app_net
   app:
     build: .
     container_name: todo_flask
@@ -29,7 +30,10 @@ services:
       FLASK_ENV: development  # מפעיל את Flask במצב פיתוח (debug)
     volumes:
       - .:/app  # קישור בין הקבצים המקומיים שלך לקונטיינר
-
+    networks:
+      - app_net
 volumes:
   db_data:
-
+networks:
+  app_net:
+    external: true

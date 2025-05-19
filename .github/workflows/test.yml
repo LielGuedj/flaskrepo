@@ -1,0 +1,36 @@
+name: test
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+      - name: install docker-compose
+        run: |
+          sudo apt-get update 
+          sudo apt-get install -y docker-compose
+      - name: create network
+        run: docker network create app_net
+      - name: start app.py
+        run: docker-compose -f Docker-compose.yml up -d --build
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "⏳ Waiting for DB to be ready..."
+          for i in {1..15}; do
+            docker exec flask_db mysqladmin ping -ppass && break
+            sleep 4
+          done
+      - name: run test
+        run: docker-compose -f Docker-compose.test.yml up --build --abort-on-container-exit
+      - name: show test result
+        if : success()
+        run: echo "test pass"
+      - name: show failure
+        if: failure()
+        run: echo "test failed"
+      - name: Cleanup containers and network
+        run: |
+                 docker-compose -f docker-compose.test.yml down -v --remove-orphans || true
+                 docker-compose -f docker-compose.yml down -v --remove-orphans || true
+                 docker network rm app_net || true

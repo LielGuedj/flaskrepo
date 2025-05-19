@@ -24,10 +24,6 @@ class Todo(db.Model):
     complete = db.Column(db.Boolean)
 
 
-# יצירת טבלאות עם עליית השרת
-with app.app_context():
-    db.create_all()
-
 
 # ראוטים
 @app.route('/', methods=["GET"])

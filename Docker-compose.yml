@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 
 services:
   db:
@@ -12,24 +12,20 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ppass"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   app:
     build: .
     container_name: todo_flask
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "5000:5000"
-    depends_on:
-      - db
-    environment:
-      DB_HOST: flask_db
-      DB_NAME: flask
-      DB_ROOT_PASSWORD: pass
-      DB_PASSWORD: pass
-      DB_USER: root
-      FLASK_ENV: development  # מפעיל את Flask במצב פיתוח (debug)
-    volumes:
-      - .:/app  # קישור בין הקבצים המקומיים שלך לקונטיינר
 
 volumes:
   db_data:
-

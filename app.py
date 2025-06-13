@@ -1,7 +1,38 @@
 import requests
+import time
+import pymysql
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
+
+# ✨ הגדרת SQLAlchemy מחוץ ל־Flask
+db = SQLAlchemy()
+
+# 🕒 פונקציה שמוודאת שה-MySQL מוכן
+def wait_for_mysql():
+    host = os.getenv("DB_HOST", "flask_db")
+    user = os.getenv("DB_USER", "root")
+    password = os.getenv("DB_PASSWORD", "pass")
+    database = os.getenv("DB_NAME", "flask")
+
+    for i in range(30):  # עד 90 שניות
+        try:
+            conn = pymysql.connect(
+                host=host,
+                user=user,
+                password=password,
+                database=database
+            )
+            conn.close()
+            print("✅ Connected to MySQL successfully!")
+            return
+        except pymysql.err.OperationalError:
+            print(f"⏳ MySQL not ready yet ({i+1}/30)... Retrying in 3 seconds.")
+            time.sleep(3)
+    raise Exception("❌ Could not connect to MySQL.")
+
+# ✨ מוודאים שה-MySQL מוכן לפני שממשיכים
+wait_for_mysql()
 
 app = Flask(__name__)
 
@@ -14,8 +45,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
-
+# ✨ התחברות ל־SQLAlchemy רק עכשיו
+db.init_app(app)
 
 # הגדרת טבלה
 class Todo(db.Model):
@@ -23,33 +54,19 @@ class Todo(db.Model):
     title = db.Column(db.String(100))
     complete = db.Column(db.Boolean)
 
-
 # יצירת טבלאות עם עליית השרת
 with app.app_context():
     db.create_all()
-
 
 # ראוטים
 @app.route('/', methods=["GET"])
 def index():
     t = Todo.query.all()
 
-    # נסיון להתחבר ל-API ולהביא ציטוט
     try:
         response = requests.get('https://zenquotes.io/api/random')
-
-        # הדפסת התגובה הגולמית מה-API
-        print("API Response Status Code:", response.status_code)  # סטטוס קוד של התגובה
-        print("API Response Text:", response.text)  # התגובה הגולמית
-
-        # אם הסטטוס קוד הוא 200 (הצלחה), נמשיך לפענח את התגובה
         if response.status_code == 200:
-            data = response.json()  # המרת התגובה לפורמט JSON
-
-            # הדפסת נתוני JSON שהתקבלו
-            print("Data received from API:", data)
-
-            # אם התגובה היא רשימה, ניגש לציטוט מתוך הנתונים
+            data = response.json()
             if isinstance(data, list) and len(data) > 0:
                 quote = data[0]['q']
                 author = data[0]['a']
@@ -57,21 +74,14 @@ def index():
                 quote = "ציטוט לא זמין כרגע"
                 author = "המערכת"
         else:
-            # אם הסטטוס קוד הוא לא 200, הציטוט לא יגיע
-            print(f"Failed to fetch quote, status code: {response.status_code}")
             quote = "ציטוט לא זמין כרגע"
             author = "המערכת"
-
     except Exception as e:
-        # אם יש בעיה בעת ביצוע הבקשה ל-API
         print(f"Error fetching quote: {e}")
         quote = "ציטוט לא זמין כרגע"
         author = "המערכת"
 
-    # שולחים את הציטוט והמחבר ל-HTML
-    print(f"Final Quote: {quote}, Author: {author}")  # הדפסת הציטוט לפני שמחזירים את התשובה
     return render_template("index.html", list_todo=t, quote=quote, author=author)
-
 
 @app.route('/add', methods=["POST"])
 def add():
@@ -81,7 +91,6 @@ def add():
     db.session.commit()
     return redirect(url_for("index"))
 
-
 @app.route('/update/<int:todo_id>')
 def update(todo_id):
     todo = Todo.query.filter_by(id=todo_id).first()
@@ -89,14 +98,12 @@ def update(todo_id):
     db.session.commit()
     return redirect(url_for("index"))
 
-
 @app.route('/delete/<int:todo_id>')
 def delete(todo_id):
     todo = Todo.query.filter_by(id=todo_id).first()
     db.session.delete(todo)
     db.session.commit()
     return redirect(url_for("index"))
-
 
 # הרצת השרת
 if __name__ == "__main__":
